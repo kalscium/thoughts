@@ -11,7 +11,7 @@ use std::path::PathBuf;
 pub fn get_path() -> PathBuf {
     #[allow(deprecated)]
     let home = std::env::home_dir().unwrap();
-    home.join(".thoughts/thoughts")
+    home.join(".thoughts-cli/thoughts")
 }
 
 #[inline]
