@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use crate::config::Config;
 use crate::prompt;
+use crate::export;
 use crate::get_path;
 
 #[derive(Parser, Debug)]
@@ -17,7 +18,10 @@ enum Commands {
     #[clap(about="To initialise a new database of thoughts")]
     Init,
     #[clap(about="To export your thoughts as a mark-down document")]
-    Export,
+    Export {
+        #[clap(long, short)]
+        file: String,
+    }
 }
 
 impl Commands {
@@ -25,14 +29,8 @@ impl Commands {
         match self {
             Commands::Today => prompt::session(get_path()),
             Commands::Init => prompt::init(get_path()),
-            Commands::Export => self.test(),
+            Commands::Export {file} => export::export(get_path(), file),
         }
-    }
-
-    fn test(&self) {
-        println!("Testing testing...");
-        println!("Hello World!");
-        println!("It's working lmao");
     }
 }
 

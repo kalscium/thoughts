@@ -20,7 +20,7 @@ pub fn session(path: impl AsRef<Path>) {
     loop {
         let input: String = ask("\x1b[35m-->\x1b[0m ");
         if input.contains("(exit)") { break }
-        if input.len() < 1 { break }
+        if input.is_empty() { break }
         let _ = victor.push(&input);
     }
 }

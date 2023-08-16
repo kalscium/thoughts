@@ -3,6 +3,7 @@ pub mod config;
 pub mod version;
 pub mod victor;
 pub mod prompt;
+pub mod export;
 
 use std::path::PathBuf;
 
@@ -22,7 +23,7 @@ pub fn error<T>(msg: &str) -> T {
 #[inline]
 pub fn ask(prompt: &str) -> String {
     use std::io::{stdout, stdin, Write};
-    let mut input = String::from("<no user input>");
+    let mut input = String::new();
     print!("{prompt}");
     let _ = stdout().flush();
     let _ = stdin().read_line(&mut input);

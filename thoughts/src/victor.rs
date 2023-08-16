@@ -3,6 +3,7 @@ use lazy_db::*;
 pub struct Victor {
     container: LazyContainer,
     tail: u64,
+    idx: u64,
 }
 
 impl Victor {
@@ -11,6 +12,7 @@ impl Victor {
         Ok(Self {
             container,
             tail: 0,
+            idx: 0
         })
     }
 
@@ -27,6 +29,7 @@ impl Victor {
         Ok(Self {
             container,
             tail,
+            idx: 0,
         })
     }
 }
@@ -34,8 +37,9 @@ impl Victor {
 impl Iterator for Victor {
     type Item = String;
     fn next(&mut self) -> Option<Self::Item> {
-        if let Ok(data) = self.container.read_data(self.tail.to_string()) {
+        if let Ok(data) = self.container.read_data(self.idx.to_string()) {
             if let Ok(string) = data.collect_string() {
+                self.idx += 1;
                 Some(string)
             } else { None }
         } else { None }
