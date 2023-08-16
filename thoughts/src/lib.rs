@@ -10,5 +10,21 @@ use std::path::PathBuf;
 pub fn get_path() -> PathBuf {
     #[allow(deprecated)]
     let home = std::env::home_dir().unwrap();
-    home.join(".thoughts/database")
+    home.join(".thoughts/thoughts")
+}
+
+#[inline]
+pub fn error<T>(msg: &str) -> T {
+    eprintln!("\x1b[35m[\x1b[31merror\x1b[35m]\x1b[0m {msg}");
+    std::process::exit(0);
+}
+
+#[inline]
+pub fn ask(prompt: &str) -> String {
+    use std::io::{stdout, stdin, Write};
+    let mut input = String::from("<no user input>");
+    print!("{prompt}");
+    let _ = stdout().flush();
+    let _ = stdin().read_line(&mut input);
+    input
 }

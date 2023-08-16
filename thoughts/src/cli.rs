@@ -12,20 +12,20 @@ struct CliArgs {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    #[clap(about="A simple test command for the cli")]
-    Test,
     #[clap(about="To start today's random thought session")]
     Today,
     #[clap(about="To initialise a new database of thoughts")]
     Init,
+    #[clap(about="To export your thoughts as a mark-down document")]
+    Export,
 }
 
 impl Commands {
     pub fn execute(&self) {
         match self {
-            Commands::Test => self.test(),
-            Commands::Today => self.test(),
+            Commands::Today => prompt::session(get_path()),
             Commands::Init => prompt::init(get_path()),
+            Commands::Export => self.test(),
         }
     }
 
