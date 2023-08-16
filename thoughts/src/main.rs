@@ -1,5 +1,5 @@
-pub use thoughts::*;
+use thoughts::*;
 
 fn main() {
-    thoughts::cli::run();
+    cli::run();
 }

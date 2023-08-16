@@ -11,13 +11,16 @@ struct CliArgs {
 #[derive(Subcommand, Debug)]
 enum Commands {
     #[clap(about="A simple test command for the cli")]
-    Test
+    Test,
+    #[clap(about="To start today's random thought session")]
+    Today,
 }
 
 impl Commands {
     pub fn execute(&self) {
         match self {
-            Commands::Test => self.test()
+            Commands::Test => self.test(),
+            Commands::Today => self.test(),
         }
     }
 
