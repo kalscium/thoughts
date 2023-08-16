@@ -1,5 +1,7 @@
 use clap::{Parser, Subcommand};
 use crate::config::Config;
+use crate::prompt;
+use crate::get_path;
 
 #[derive(Parser, Debug)]
 #[clap(author=Config::AUTHOR, version=Config::VERSION_STRING, about=Config::ABOUT)]
@@ -14,6 +16,8 @@ enum Commands {
     Test,
     #[clap(about="To start today's random thought session")]
     Today,
+    #[clap(about="To initialise a new database of thoughts")]
+    Init,
 }
 
 impl Commands {
@@ -21,6 +25,7 @@ impl Commands {
         match self {
             Commands::Test => self.test(),
             Commands::Today => self.test(),
+            Commands::Init => prompt::init(get_path()),
         }
     }
 

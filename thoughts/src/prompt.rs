@@ -4,10 +4,12 @@ use std::path::Path;
 use crate::victor::Victor;
 
 pub fn session(path: impl AsRef<Path>) {
+    println!("Starting Session...");
     let path = path.as_ref();
     let database = LazyDB::load_db(path).unwrap();
     let mut victor = Victor::load(database.as_container().unwrap()).unwrap();
     
+    println!("Welcome to a space for random thoughts :D!");
     loop {
         let input: String = prompt("--> ").unwrap();
         if input.contains("(exit)") { break }
@@ -16,7 +18,8 @@ pub fn session(path: impl AsRef<Path>) {
 }
 
 pub fn init(path: impl AsRef<Path>) {
+    println!("Initialising a new database...");
     let path = path.as_ref();
-    std::fs::create_dir_all(path).unwrap();
     LazyDB::init_db(path).unwrap();
+    println!("Initialised a new thought database!")
 }
