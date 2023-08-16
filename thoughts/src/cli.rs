@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 use crate::config::Config;
 use crate::prompt;
 use crate::export;
+use crate::wipe;
 use crate::get_path;
 
 #[derive(Parser, Debug)]
@@ -21,7 +22,9 @@ enum Commands {
     Export {
         #[clap(long, short)]
         file: String,
-    }
+    },
+    #[clap(about="Wipes all thoughts permanantly")]
+    Wipe,
 }
 
 impl Commands {
@@ -30,6 +33,7 @@ impl Commands {
             Commands::Today => prompt::session(get_path()),
             Commands::Init => prompt::init(get_path()),
             Commands::Export {file} => export::export(get_path(), file),
+            Commands::Wipe => wipe::wipe(get_path())
         }
     }
 }

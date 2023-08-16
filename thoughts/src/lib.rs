@@ -4,6 +4,7 @@ pub mod version;
 pub mod victor;
 pub mod prompt;
 pub mod export;
+pub mod wipe;
 
 use std::path::PathBuf;
 
