@@ -1,49 +1,61 @@
 use clap::{Parser, Subcommand};
-use crate::config::Config;
+use crate::database::Database;
+use crate::get_dir;
 use crate::prompt;
 use crate::export;
+use crate::unwrap;
 use crate::wipe;
-use crate::get_path;
 
 #[derive(Parser, Debug)]
-#[clap(author=Config::AUTHOR, version=Config::VERSION_STRING, about=Config::ABOUT)]
-struct CliArgs {
+#[clap(author, version, about)]
+pub struct Cli {
     #[clap(subcommand)]
-    command: Commands,
+    pub command: Commands,
 }
 
 #[derive(Subcommand, Debug)]
-enum Commands {
+pub enum Commands {
     #[clap(about="To start today's random thought session")]
     Today,
     #[clap(about="To initialise a new database of thoughts")]
     Init,
-    #[clap(about="To export your thoughts as a mark-down document")]
+    #[clap(about="To export your thoughts as a markdown document")]
     Export {
-        #[clap(long, short)]
+        #[clap(index=1, help="The location of the file you want to export as")]
         file: String,
     },
     #[clap(about="Wipes all thoughts permanantly")]
     Wipe,
+    #[clap(about="Compacts the thoughts database to make it more compact and storage efficient")]
+    Compact,
+    #[clap(about="Backs up the thoughts database to the specified location")]
+    Backup {
+        #[clap(index=1, help="The location to backup to as")]
+        file: String,
+    },
+    #[clap(about="Imports a backup of the thoughts database")]
+    Import {
+        #[clap(short='l', long, help="If the backup is of a legacy version (`lazy-db` datbase)")]
+        is_lazydb: bool,
+        #[clap(index=1, help="The location of backup")]
+        file: String,
+    }
 }
 
 impl Commands {
     pub fn execute(&self) {
+        use Commands as C;
         match self {
-            Commands::Today => prompt::session(get_path()),
-            Commands::Init => prompt::init(get_path()),
-            Commands::Export {file} => export::export(get_path(), file),
-            Commands::Wipe => wipe::wipe(get_path())
+            C::Today => prompt::session(get_dir()),
+            C::Init => prompt::init(get_dir()),
+            C::Export { file } => export::export(get_dir(), file),
+            C::Wipe => wipe::wipe(get_dir()),
+            C::Compact => {
+                let mut database = unwrap!(Database::load(get_dir()));
+                unwrap!(database.stackdb.rebase(1024)); // compaction of only 1KiB
+            },
+            C::Backup { file } => export::backup(get_dir(), file),
+            C::Import { is_lazydb, file } => prompt::import(get_dir(), *is_lazydb, file),
         }
     }
-}
-
-static mut COUNT: u8 = 0; // Counts the amount of times cli is run (cannot be more than once!)
-
-pub fn run() {
-    // Safety checks
-    unsafe { if COUNT > 0 { panic!("Error: cli cannot be run more than once during program lifetime!") } }
-    unsafe { COUNT += 1; }
-    let cli: CliArgs = CliArgs::parse();
-    cli.command.execute();
 }

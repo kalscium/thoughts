@@ -1,5 +1,7 @@
-use thoughts::*;
+use thoughts::cli::Cli;
+use clap::Parser;
 
 fn main() {
-    cli::run();
+    let cli: Cli = Cli::parse();
+    cli.command.execute();
 }

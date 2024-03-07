@@ -1,34 +1,59 @@
-use lazy_db::*;
-use std::path::Path;
-use crate::victor::Victor;
-use crate::ask;
+use std::{fs, path::Path};
+use lazy_db::LazyDB;
+use crate::{database::Database, info, unwrap, victor::Victor};
 
 pub fn session(path: impl AsRef<Path>) {
-    println!("Starting Session...");
+    info("starting session...");
     let path = path.as_ref();
-    let database = match LazyDB::load_db(path.with_extension("ldb")) {
-        Ok(x) => x,
-        Err(e) => match e {
-            LDBError::FileNotFound(_) => crate::error("thought database not found! run `thoughts init` to initialise a new one."),
-            _ => Err(e).unwrap(),
-        },
-    };
-    let mut victor = Victor::load(database.as_container().unwrap()).unwrap();
-    
-    println!("Welcome to a space for random thoughts :D!");
-    println!("Enter `(exit)` to exit the thought session.");
+    if !path.is_dir() {
+        crate::error::<()>("thought database not found! run `thoughts init` to initialise a new one.");
+    }
+
+    let mut database = unwrap!(Database::load(path));
+    info("welcome to a space for random thoughts :D!");
+    info("enter `(exit)`, CTRL+C or CTRL+D to exit the thought session");
+
+    let mut rl = unwrap!(rustyline::DefaultEditor::new());
     loop {
-        let input: String = ask("\x1b[35m-->\x1b[0m ");
-        if input.contains("(exit)") { break }
-        if input.is_empty() { break }
-        let _ = victor.push(&input);
+        let line = rl.readline("\x1b[35m=>>\x1b[0m ");
+
+        match line {
+            Ok(line) => {
+                if line.contains("(exit)") { break };
+                if line.is_empty() { continue };
+                unwrap!(database.push(&line));
+            },
+            Err(rustyline::error::ReadlineError::Eof) => break,
+            Err(rustyline::error::ReadlineError::Interrupted) => break,
+            Err(_) => continue,
+        }
     }
 }
 
 pub fn init(path: impl AsRef<Path>) {
-    println!("Initialising a new database...");
+    info("initialising a new thought database...");
+    unwrap!(Database::new(path));
+}
+
+pub fn import(path: impl AsRef<Path>, is_lazydb: bool, backup: impl AsRef<Path>) {
     let path = path.as_ref();
-    let db = LazyDB::init_db(path).unwrap();
-    Victor::new(db.as_container().unwrap()).unwrap();
-    println!("Initialised a new thought database!");
+    crate::wipe::wipe(path);
+    unwrap!(fs::create_dir_all(path));
+
+    info("importing the backup...");
+
+    if is_lazydb {
+        info("detected that backup is a legacy `lazy-db`");
+        let mut database = unwrap!(Database::new(path));
+        
+        let lazy_db = unwrap!(LazyDB::load_db(backup));
+        let victor = unwrap!(Victor::load(unwrap!(lazy_db.as_container())));
+
+        for thought in victor {
+            unwrap!(database.push(thought.as_str()));
+        } return;
+    }
+
+    unwrap!(fs::create_dir_all(path));
+    unwrap!(fs::copy(backup, path.join("0")));
 }
