@@ -2,8 +2,12 @@
 name = "thoughts"
 version = "2.0.0"
 edition = "2021"
-description = "A really simple CLI frontend to a database of my random thoughts."
-license = "GPLv3"
+description = "A simple cli for recording down any random thoughts you may have :D"
+license = "GPL-3.0-only"
+authors = [ "GreenChild04" ]
+repository = "https://github.com/GreenChild04/thoughts"
+keywords = [ "cli", "thoughts", "simple" ]
+categories = [ "command-line-utilities" ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
