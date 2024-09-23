@@ -23,4 +23,11 @@ pub enum Command {
         #[clap(long, required=true)]
         i_know_what_i_am_doing: bool,
     },
+    #[clap(about="Exports your thoughts as either RON or markdown")]
+    Export {
+        #[clap(short, long, help="If you want to export it as markdown instead of ron")]
+        markdown: bool,
+        #[clap(index=1, help="The path of the file you want to export as")]
+        path: String,
+    },
 }
