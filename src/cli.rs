@@ -30,4 +30,9 @@ pub enum Command {
         #[clap(index=1, help="The path of the file you want to export as")]
         path: String,
     },
+    #[clap(about="Imports a RON version of your thoughts and combnies it with your existing thought database")]
+    Import {
+        #[clap(index=1, help="The path of the RON thoughts you want to import")]
+        path: String,
+    },
 }

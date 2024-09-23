@@ -1,6 +1,6 @@
 use std::{fs::{self, File}, io::Write};
 use chrono::{DateTime, Datelike, Local, Utc};
-use log::info;
+use log::{info, warn};
 
 use crate::{database::Database, get_dir, thought::Thought};
 
@@ -100,4 +100,49 @@ fn export_ron(path: &str) {
     // write the generated ron to the file
     fs::write(path, ron).unwrap();
     info!("successfully export thoughts as RON!");
+}
+
+/// Imports RON thoughts and combines it with the current existing database
+pub fn import(path: &str) {
+    info!("importing RON thoughts and combining with current database...");
+
+    // get the current thoughts from the database if it exists, otherwise create an empty vector
+    let mut thoughts = if get_dir().exists() {
+        info!("thoughts database found");
+        Database::load(get_dir()).unwrap()
+            .map(|bytes| {
+                // deserialize the thought
+                bincode::deserialize(&bytes)
+                    .expect("thoughts database is corrupt")
+            })
+            .collect::<Vec<Thought>>()
+    } else {
+        warn!("thoughts database not found, initialising a new one");
+        Vec::new()
+    };
+
+    // get the RON thoughts
+    #[allow(clippy::expect_fun_call)]
+    let ron_thoughts: Vec<Thought> = ron::from_str(&fs::read_to_string(path).expect(&format!("while reading the contents of `{path}`"))).expect("RON thoughts are corrupt");
+
+    // combine the thoughts and remove duplicates
+    for thought in ron_thoughts.into_iter() {
+        if !thoughts.contains(&thought) {
+            thoughts.push(thought);
+        }
+    }
+
+    // sort the thoughts by time
+    thoughts.sort_by_key(|thought| thought.1.map(|utc| utc.timestamp_millis()).unwrap_or(0));
+
+    // write the resulting thoughts to a new database
+    let _ = fs::remove_dir_all(get_dir());
+    let mut database = Database::new(get_dir()).expect("while initialising database");
+    for thought in thoughts {
+        database.push(
+            &bincode::serialize(&thought).unwrap()
+        ).expect("while writing to thought database (warning: major data loss)");
+    }
+
+    info!("successfully imported RON thoughts!");
 }

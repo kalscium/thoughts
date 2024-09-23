@@ -3,7 +3,7 @@ pub mod database;
 pub mod thought;
 pub mod cli;
 pub mod session;
-pub mod export;
+pub mod port;
 
 pub fn get_dir() -> std::path::PathBuf {
     home::home_dir()
