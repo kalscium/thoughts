@@ -1,6 +1,6 @@
 [package]
 name = "thoughts"
-version = "2.1.0"
+version = "2.2.0"
 edition = "2021"
 description = "A simple cli for recording down any random thoughts you may have :D"
 license = "GPL-3.0-only"

@@ -16,7 +16,11 @@ pub fn export(path: impl AsRef<Path>, markdown: bool, output: impl AsRef<Path>) 
 }
 
 #[derive(Serialize)]
-pub struct Thought(String, Option<DateTime<Utc>>);
+pub struct Thought {
+    uid: i64,
+    thought: String,
+    utc: Option<DateTime<Utc>>,
+}
 
 fn export_ron(path: impl AsRef<Path>, output: impl AsRef<Path>) {
     info(&format!("exporting thoughts as `{}`...", output.as_ref().to_string_lossy()));
@@ -24,7 +28,12 @@ fn export_ron(path: impl AsRef<Path>, output: impl AsRef<Path>) {
 
     // collect and generate ron
     let ron = database.into_iter()
-        .map(|thought| Thought(thought, None))
+        .enumerate()
+        .map(|(idx, thought)| Thought {
+            uid: idx as i64,
+            thought,
+            utc: None,
+        })
         .collect::<Vec<_>>();
     let ron = unwrap!(ron::to_string(&ron));
 
