@@ -30,37 +30,37 @@ fn export_markdown(path: &str) {
         let thought = bincode::deserialize(&bytes).expect("thought database is corrupt");
 
         // extract the thought and time
-        let Thought(thought, time) = thought;
+        let Thought { uid: _, thought, utc } = thought;
 
         // if there is a timestamp then check it
         // diff day, print date
         // if it's been longer than an 30 mins, print time
-        if let Some(time) = time {
+        if let Some(utc) = utc {
             // get the last time or otherwise use a generic time
             let last = last.unwrap_or(DateTime::from_timestamp_nanos(0));
             
             // check the day or month or year
-            if last.day() != time.day() || last.month() != time.month() || last.year() != time.year() {
-                let time: DateTime<Local> = DateTime::from(time);
+            if last.day() != utc.day() || last.month() != utc.month() || last.year() != utc.year() {
+                let utc: DateTime<Local> = DateTime::from(utc);
 
                 // format the date
                 let format = &format!(
-                    "%A, %-d{} of %B %Y, `%I:%M %p`",
+                    "%A, %-d{} of %B %Y `%I:%M %p`",
                     // get the suffix (may replace later with better alternative)
-                    match time.day() {
+                    match utc.day() {
                         t if t % 10 == 1 && t % 100 != 11 => "st",
                         t if t % 10 == 2 && t % 100 != 12 => "nd",
                         t if t % 10 == 3 && t % 100 != 13 => "rd",
                         _ => "th",
                     }
                 );
-                let date = format!("## {}\n", time.format(format));
+                let date = format!("## {}\n", utc.format(format));
 
                 // write the formatted date
                 file.write_all(date.as_bytes()).unwrap();
-            } else if (time.time() - last.time()).num_minutes() > 30 { // check if it's within 30 minutes
+            } else if (utc.time() - last.time()).num_minutes() > 16 { // check if it's within 16 minutes
                 // format the time and write it
-                let time: DateTime<Local> = DateTime::from(time);
+                let time: DateTime<Local> = DateTime::from(utc);
                 let time = time.format("`%I:%M %p`");
                 let time = format!("#### {time}\n");
 
@@ -70,7 +70,7 @@ fn export_markdown(path: &str) {
         }
 
         // update last
-        last = time;
+        last = utc;
 
         // write the thought to the file
         let thought = format!("- {thought}\n");
@@ -126,14 +126,14 @@ pub fn import(path: &str) {
     let ron_thoughts: Vec<Thought> = ron::from_str(&fs::read_to_string(path).expect(&format!("while reading the contents of `{path}`"))).expect("RON thoughts are corrupt");
 
     // combine the thoughts and remove duplicates
-    for thought in ron_thoughts.into_iter() {
-        if !thoughts.contains(&thought) {
-            thoughts.push(thought);
+    for rthought in ron_thoughts.into_iter() {
+        if !thoughts.iter().any(|thought| thought.uid == rthought.uid) {
+            thoughts.push(rthought);
         }
     }
 
     // sort the thoughts by time
-    thoughts.sort_by_key(|thought| thought.1.map(|utc| utc.timestamp_millis()).unwrap_or(0));
+    thoughts.sort_unstable_by_key(|thought| thought.uid);
 
     // write the resulting thoughts to a new database
     let _ = fs::remove_dir_all(get_dir());

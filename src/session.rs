@@ -39,7 +39,12 @@ pub fn session() {
 /// Pushes a thought to the thought database
 pub fn push_thought(thought: String, database: &mut Database) {
     // construct the thought and serialize it
-    let thought = Thought(thought, Some(Utc::now()));
+    let utc = Utc::now();
+    let thought = Thought {
+        uid: utc.timestamp_millis(),
+        thought,
+        utc: Some(utc),
+    };
     let bytes = bincode::serialize(&thought).unwrap();
 
     // push it
