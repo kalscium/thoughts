@@ -27,5 +27,11 @@ fn main() {
         C::Push { thought } => session::push_thought(thought, &mut Database::load(get_dir()).expect("database corrupt or non-existent")),
         C::Export { markdown, path } => thoughts::port::export(markdown, &path),
         C::Import { path } => thoughts::port::import(&path),
+        C::Compact => {
+            info!("compacting thoughts database...");
+            let mut database = Database::load(get_dir()).expect("failed to load thoughts database");
+            database.stackdb.rebase(1024 * 16).expect("failed to rebase thoughts database"); // compaction of only 16KiB
+            info!("successfully compacted thoughts database!");
+        },
     }
 }

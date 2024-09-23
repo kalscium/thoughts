@@ -35,4 +35,6 @@ pub enum Command {
         #[clap(index=1, help="The path of the RON thoughts you want to import")]
         path: String,
     },
+    #[clap(about="Compacts the thoughts database to make it more compact and storage efficient")]
+    Compact,
 }
