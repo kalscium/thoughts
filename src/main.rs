@@ -1,3 +1,5 @@
+use std::fs;
+
 use clap::Parser;
 use log::info;
 use thoughts::{cli::Cli, database::Database, get_dir, log::Logger};
@@ -16,6 +18,11 @@ fn main() {
         C::Init => {
             info!("initialising a new thought database...");
             Database::new(get_dir()).unwrap();
-        }
+        },
+        C::Wipe { .. } => {
+            info!("wiping all thoughts...");
+            let _ = fs::remove_dir_all(get_dir());
+            info!("run `thoughts init` to re-init thoughts!");
+        },
     }
 }

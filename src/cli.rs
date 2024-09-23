@@ -11,4 +11,9 @@ pub struct Cli {
 pub enum Command {
     #[clap(about="To initialise a new database of thoughts")]
     Init,
+    #[clap(about="Wipes all thoughts permanantly")]    
+    Wipe {
+        #[clap(long, required=true)]
+        i_know_what_i_am_doing: bool,
+    },
 }
