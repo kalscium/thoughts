@@ -21,6 +21,8 @@ pub enum Commands {
     Init,
     #[clap(about="To export your thoughts as a markdown document")]
     Export {
+        #[clap(short, long, help="If you want to export it as markdown instead of ron")]
+        markdown: bool,
         #[clap(index=1, help="The location of the file you want to export as")]
         file: String,
     },
@@ -48,7 +50,7 @@ impl Commands {
         match self {
             C::Today => prompt::session(get_dir()),
             C::Init => prompt::init(get_dir()),
-            C::Export { file } => export::export(get_dir(), file),
+            C::Export { markdown, file } => export::export(get_dir(), *markdown, file),
             C::Wipe => wipe::wipe(get_dir()),
             C::Compact => {
                 let mut database = unwrap!(Database::load(get_dir()));

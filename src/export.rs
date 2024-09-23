@@ -1,10 +1,38 @@
 use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::fs::{self, File};
+use chrono::{DateTime, Utc};
+use serde::Serialize;
+
 use crate::database::Database;
 use crate::{info, unwrap};
 
-pub fn export(path: impl AsRef<Path>, output: impl AsRef<Path>) {
+pub fn export(path: impl AsRef<Path>, markdown: bool, output: impl AsRef<Path>) {
+    if markdown {
+        export_markdown(path, output);
+    } else {
+        export_ron(path, output);
+    }
+}
+
+#[derive(Serialize)]
+pub struct Thought(String, Option<DateTime<Utc>>);
+
+fn export_ron(path: impl AsRef<Path>, output: impl AsRef<Path>) {
+    info(&format!("exporting thoughts as `{}`...", output.as_ref().to_string_lossy()));
+    let database = unwrap!(Database::load(path));
+
+    // collect and generate ron
+    let ron = database.into_iter()
+        .map(|thought| Thought(thought, None))
+        .collect::<Vec<_>>();
+    let ron = unwrap!(ron::to_string(&ron));
+
+    // write the outputed ron to the file
+    unwrap!(fs::write(output, ron.as_bytes()));
+}
+
+fn export_markdown(path: impl AsRef<Path>, output: impl AsRef<Path>) {
     info(&format!("exporting thoughts as `{}`...", output.as_ref().to_string_lossy()));
     let database = unwrap!(Database::load(path));
 
