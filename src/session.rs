@@ -44,4 +44,7 @@ pub fn push_thought(thought: String, database: &mut Database) {
 
     // push it
     database.push(&bytes).expect("failed to push thought into thought database");
+
+    // flush database
+    database.commit().expect("failed to push thought into thought database");
 }

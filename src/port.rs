@@ -138,11 +138,11 @@ pub fn import(path: &str) {
     // write the resulting thoughts to a new database
     let _ = fs::remove_dir_all(get_dir());
     let mut database = Database::new(get_dir()).expect("while initialising database");
-    for thought in thoughts {
+    for thought in thoughts.into_iter() {
         database.push(
             &bincode::serialize(&thought).unwrap()
         ).expect("while writing to thought database (warning: major data loss)");
-    }
+    } database.commit().expect("while writing to thought database (warning: major data loss)");
 
     info!("successfully imported RON thoughts!");
 }

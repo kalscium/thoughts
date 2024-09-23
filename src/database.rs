@@ -8,11 +8,10 @@ pub struct Database<'l> {
 }
 
 impl<'l> Database<'l> {
-    #[inline]
     pub fn new(path: impl AsRef<Path>) -> Result<Self, Error> {
         let mut stackdb = StackDB::new(SkdbDirAlloc::new(path)?)?;
         stackdb.write(0, &8u64.to_be_bytes())?;
-        stackdb.flush()?;
+        stackdb.commit()?;
 
         Ok(Self {
             stackdb,
@@ -21,7 +20,6 @@ impl<'l> Database<'l> {
         })
     }
 
-    #[inline]
     pub fn push(&mut self, value: &[u8]) -> Result<(), Error> {
         // write string and string length
         self.stackdb.write(self.tail, &value.len().to_be_bytes())?;
@@ -30,12 +28,10 @@ impl<'l> Database<'l> {
         // update tail
         self.tail += value.len() as u64 + 8;
         self.stackdb.write(0, &self.tail.to_be_bytes())?;
-        self.stackdb.flush()?;
 
         Ok(())
     }
 
-    #[inline]
     pub fn load(path: impl AsRef<Path>) -> Result<Self, Error> {
         let mut stackdb = StackDB::new(SkdbDirAlloc::load(path.as_ref())?)?;
         let tail = u64::from_be_bytes((*stackdb.read(0..8)?).try_into().unwrap());
@@ -44,6 +40,10 @@ impl<'l> Database<'l> {
             tail,
             idx: 8,
         })
+    }
+
+    pub fn commit(&mut self) -> Result<(), Error> {
+        self.stackdb.commit()
     }
 }
 
