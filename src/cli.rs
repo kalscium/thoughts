@@ -9,8 +9,15 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Command {
-    #[clap(about="To initialise a new database of thoughts")]
+    #[clap(about="Initialises a new database of thoughts")]
     Init,
+    #[clap(about="Starts a random thought session for today")]
+    Today,
+    #[clap(about="Appends a single random thought")]
+    Push {
+        #[clap(index=1)]
+        thought: String,
+    },
     #[clap(about="Wipes all thoughts permanantly")]    
     Wipe {
         #[clap(long, required=true)]
