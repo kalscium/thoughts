@@ -1,16 +1,67 @@
-use std::{fs::{self, File}, io::Write};
+use std::{fs::{self, File}, io::{Seek, Write}};
 use chrono::{DateTime, Datelike, Local, Utc};
 use log::{info, warn};
 
 use crate::{database::Database, get_dir, thought::Thought};
 
 /// Exports a thought database as either markdown or RON
-pub fn export(markdown: bool, path: &str) {
+pub fn export(markdown: bool, oats: bool, path: &str) {
     if markdown {
         export_markdown(path);
+    } else if oats {
+        export_oats(path);
     } else {
         export_ron(path);
     }
+}
+
+fn export_oats(path: &str) {
+    info!("exporting thoughts as oats (`{path}`)...");
+
+    // get both the database and output file
+    let database = Database::load(get_dir()).expect("database either corrupt or non-existent");
+    let mut file = File::create(path).unwrap();
+
+    // write the magic
+    file.write_all("oats".as_bytes()).unwrap();
+    file.write_all(&[0]).unwrap();
+    file.seek(std::io::SeekFrom::Start(4 + 1 + 8)).unwrap();
+
+    let mut stack_ptr: u64 = 4 + 1 + 8;
+
+    // write the entries
+    for bytes in database {
+        // deserialize the thought
+        let thought = bincode::deserialize(&bytes).expect("thought database is corrupt");
+
+        // extract the thought and time
+        let Thought { uid, thought, utc } = thought;
+
+        // length & id
+        let length = 8 + 1 + thought.len() as u32 + if utc.is_some() { 8 } else { 0 };
+        file.write_all(&length.to_be_bytes()).unwrap();
+        file.write_all(&uid.to_be_bytes()).unwrap();
+
+        // if date exists then diff bitfield
+        if let Some(utc) = utc {
+            file.write_all(&[2]).unwrap();
+            file.write_all(&utc.timestamp_millis().to_be_bytes()).unwrap();
+        } else {
+            file.write_all(&[0]).unwrap();
+        }
+
+        // contents
+        file.write_all(thought.as_bytes()).unwrap();
+
+        // length
+        file.write_all(&length.to_be_bytes()).unwrap();
+
+        stack_ptr += length as u64 + 2 * 4;
+    }
+
+    // write the stack ptr
+    file.seek(std::io::SeekFrom::Start(4 + 1)).unwrap();
+    file.write_all(&stack_ptr.to_be_bytes()).unwrap();
 }
 
 fn export_markdown(path: &str) {

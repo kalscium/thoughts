@@ -25,7 +25,7 @@ fn main() {
         },
         C::Today => session::session(),
         C::Push { thought } => session::push_thought(thought, &mut Database::load(get_dir()).expect("database corrupt or non-existent")),
-        C::Export { markdown, path } => thoughts::port::export(markdown, &path),
+        C::Export { markdown, oats, path } => thoughts::port::export(markdown, oats, &path),
         C::Import { path } => thoughts::port::import(&path),
         C::Compact => {
             info!("compacting thoughts database...");

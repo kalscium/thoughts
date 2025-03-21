@@ -3,7 +3,7 @@ use stack_db::prelude::*;
 
 pub struct Database<'l> {
     pub stackdb: StackDB<'l, SkdbDirAlloc>,
-    tail: u64,
+    pub tail: u64,
     idx: u64,
 }
 

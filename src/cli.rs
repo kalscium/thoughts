@@ -27,6 +27,8 @@ pub enum Command {
     Export {
         #[clap(short, long, help="If you want to export it as markdown instead of ron")]
         markdown: bool,
+        #[clap(short, long, conflicts_with="markdown", help="If you want to export it as an oats database")]
+        oats: bool,
         #[clap(index=1, help="The path of the file you want to export as")]
         path: String,
     },
